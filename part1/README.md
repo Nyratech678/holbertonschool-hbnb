@@ -10,10 +10,9 @@ Les interactions entre les couches via des séquences d’appels API.
 
 L’objectif est de fournir un plan technique clair pour guider le développement ultérieur.
 
-
 # 1.High-Level Package Diagram
 
-''mermaid
+```mermaid
 classDiagram
 class PresentationLayer {
     <<Interface>>
@@ -44,22 +43,21 @@ class PersistenceLayer {
 PresentationLayer --> Facade : appels (API)
 Facade --> BusinessLogicLayer : utilise
 BusinessLogicLayer --> PersistenceLayer : lit/écrit
-''
+```
 
-# Presentation Layer : les API exposées aux utilisateurs.
+# Presentation Layer : les API exposées aux utilisateurs
 
-# Facade : point d’entrée unique simplifiant l’accès aux services.
+# Facade : point d’entrée unique simplifiant l’accès aux services
 
-# Business Logic Layer : logique métier et entités principales.
+# Business Logic Layer : logique métier et entités principales
 
-# Persistence Layer : interaction avec la base de données.
-
+# Persistence Layer : interaction avec la base de données
 
 # 2.Business Logic – Detailed Class Diagram
 
 Ce diagramme détaille les entités du domaine métier : User, Place, Review, Amenity
 
-''mermaid
+```mermaid
 classDiagram
 class User {
     +UUID id
@@ -118,30 +116,29 @@ User "1" --> "many" Place : owns >
 User "1" --> "many" Review : writes >
 Place "1" --> "many" Review : receives >
 Place "1" --> "many" Amenity : has >
-''
+```
 
-# User : gère l’inscription, le profil et peut être admin.
+# User : gère l’inscription, le profil et peut être admin
 
-# Place : représente une annonce créée par un utilisateur.
+# Place : représente une annonce créée par un utilisateur
 
-# Review : évaluations laissées par des utilisateurs sur un lieu.
+# Review : évaluations laissées par des utilisateurs sur un lieu
 
-# Amenity : équipements associés à un lieu.
+# Amenity : équipements associés à un lieu
 
-# Relations :
+# Relations
 
-# Un utilisateur peut posséder plusieurs places et écrire plusieurs reviews.
+# Un utilisateur peut posséder plusieurs places et écrire plusieurs reviews
 
-# Une place a plusieurs reviews et plusieurs amenities.
-
-
+# Une place a plusieurs reviews et plusieurs amenities
 
 # 3.Sequence Diagrams – API Calls
 
 Ces séquences illustrent le flux d’exécution des principales API de l’application.
 
-# User Registration:
-''mermaid
+# User Registration
+
+```mermaid
 sequenceDiagram
 participant User
 participant API
@@ -157,10 +154,11 @@ Database-->>BusinessLogic: success
 BusinessLogic-->>Facade: return User object
 Facade-->>API: return success response
 API-->>User: User created
-''
+```
 
 # Place Creation
-''mermaid
+
+```mermaid
 sequenceDiagram
 participant User
 participant API
@@ -176,10 +174,11 @@ Database-->>BusinessLogic: success
 BusinessLogic-->>Facade: return Place object
 Facade-->>API: return success response
 API-->>User: Place created
-''
+```
 
 # Review Submission
-''mermaid
+
+```mermaid
 sequenceDiagram
 participant User
 participant API
@@ -195,10 +194,11 @@ Database-->>BusinessLogic: success
 BusinessLogic-->>Facade: return Review object
 Facade-->>API: return success response
 API-->>User: Review submitted
-''
+```
 
 # Fetching a List of Places
-''mermaid
+
+```mermaid
 sequenceDiagram
 participant User
 participant API
@@ -214,4 +214,4 @@ Database-->>BusinessLogic: results
 BusinessLogic-->>Facade: return list
 Facade-->>API: return response
 API-->>User: List of Places
-''
+```

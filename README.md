@@ -1,6 +1,7 @@
 # 0. High-Level Package Diagram
 
 ## Objectif
+
 Ce document présente un diagramme de haut niveau qui illustre l’architecture en trois couches de l’application **HBnB**, ainsi que l’utilisation du **Facade Pattern** pour organiser la communication entre les couches.
 
 ---
@@ -37,3 +38,4 @@ class PersistenceLayer {
 PresentationLayer --> Facade : appels (API)
 Facade --> BusinessLogicLayer : utilise
 BusinessLogicLayer --> PersistenceLayer : lit/écrit
+```
