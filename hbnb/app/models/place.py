@@ -1,49 +1,56 @@
 #!/usr/bin/python3
 from app.models.Base_models import BaseModel
-from app.models.user import User
-from flask_sqlalchemy import SQLAlchemy
+from app.models.associations import place_amenity
 from app import db
 
-db = SQLAlchemy()
-
 class Place(BaseModel):
-    def __init__(self, title, description="", price_by_night=0.0, latitude=0.0, longitude=0.0, owner=None):
-        super().__init__()
+    """Place model for storing place information"""
+    __tablename__ = 'places'
+    
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(500), nullable=True)
+    price_by_night = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    
+    # Relationships
+    reviews = db.relationship('Review', backref='place', lazy=True, cascade='all, delete-orphan')
+    amenities = db.relationship('Amenity', secondary=place_amenity, lazy='subquery',
+                               backref=db.backref('places', lazy=True))
 
+    def __init__(self, title, price_by_night, owner_id, description="", latitude=0.0, longitude=0.0, **kwargs):
+        super().__init__(**kwargs)
+        
         if not title or len(title) > 100:
             raise ValueError("Title must be between 1 and 100 characters.")
         if description and len(description) > 500:
             raise ValueError("Description max 500 characters.")
         if price_by_night <= 0:
             raise ValueError("Price must be positive.")
-        if not (-90.0 <= latitude <= 90.0):
+        if latitude and not (-90.0 <= latitude <= 90.0):
             raise ValueError("Latitude must be between -90.0 and 90.0.")
-        if not (-180.0 <= longitude <= 180.0):
+        if longitude and not (-180.0 <= longitude <= 180.0):
             raise ValueError("Longitude must be between -180.0 and 180.0.")
-        if not isinstance(owner, User):
-            raise ValueError("Owner must be an instance of User.")
 
         self.title = title
         self.description = description
         self.price_by_night = price_by_night
         self.latitude = latitude
         self.longitude = longitude
-        self.owner = owner
+        self.owner_id = owner_id
 
-class Place(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    __tablename__ = 'places'
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(128), nullable=False)
-    description = db.Column(db.String(256), nullable=True)
-    price = db.Column(db.Float, nullable=False)
-    latitude = db.Column(db.Float, nullable=True)
-    longitude = db.Column(db.Float, nullable=True)
-    reviews = db.relationship('Review', backref='place', lazy=True)
-    amenities = db.relationship('Amenity', secondary=place_amenity,
-    lazy='subquery', backref=db.backref('places', lazy=True))
-    place_amenity = db.Table('place_amenity',
-    db.Column('place_id', db.Integer, db.ForeignKey('places.id'), primary_key=True),
-    db.Column('amenity_id', db.Integer, db.ForeignKey('amenities.id'), primary_key=True)
-)
+    def to_dict(self):
+        """Convert place to dictionary"""
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'price_by_night': self.price_by_night,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'owner_id': self.owner_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+

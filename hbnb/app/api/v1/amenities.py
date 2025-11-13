@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 from flask_restx import Namespace, Resource, fields
-from flask import jsonify, request
-from app.services import facade
+from app.services.facade import HBnBFacade
 
 api = Namespace('amenities', description='Amenity operations')
+
+# Initialize facade
+facade = HBnBFacade()
 
 amenity_model = api.model('Amenity', {
     'name': fields.String(required=True, description='The amenity name')
@@ -19,19 +21,19 @@ class AmenityList(Resource):
         """Register a new Amenity"""
         data = api.payload
         if not data or 'name' not in data:
-            api.abort(400, 'Invalid input data.')
+            return {'error': 'Invalid input data.'}, 400
         try:
             new_amenity = facade.create_amenity(data)
-            return jsonify({'id': new_amenity.id, 'name': new_amenity.name}), 201
+            return {'id': new_amenity.id, 'name': new_amenity.name}, 201
         except ValueError as e:
-            api.abort(400, str(e))
+            return {'error': str(e)}, 400
 
     @api.response(200, 'List of amenities retrieved successfully.')
     def get(self):
         """Retrieve a list of all Amenities"""
         amenities = facade.get_all_amenities()
         result = [{'id': a.id, 'name': a.name} for a in amenities]
-        return jsonify(result)
+        return result, 200
 
 
 @api.route('/<string:amenity_id>')
@@ -42,9 +44,9 @@ class AmenityResource(Resource):
         """Get amenity detail by id"""
         try:
             amenity = facade.get_amenity(amenity_id)
-            return jsonify({'id': amenity.id, 'name': amenity.name})
+            return {'id': amenity.id, 'name': amenity.name}, 200
         except ValueError:
-            api.abort(404, 'Amenity not found.')
+            return {'error': 'Amenity not found.'}, 404
 
     @api.expect(amenity_model)
     @api.response(200, 'Amenity updated successfully.')
@@ -54,11 +56,12 @@ class AmenityResource(Resource):
         """Update an existing Amenity"""
         data = api.payload
         if not data or 'name' not in data:
-            api.abort(400, 'Invalid input data.')
+            return {'error': 'Invalid input data.'}, 400
         try:
             updated_amenity = facade.update_amenity(amenity_id, data)
-            return {'message': 'Amenity updated successfully'}, 200
+            if updated_amenity:
+                return {'message': 'Amenity updated successfully'}, 200
+            return {'error': 'Amenity not found.'}, 404
         except ValueError as e:
-            api.abort(400, str(e))
-        except KeyError:
-            api.abort(404, 'Amenity not found.')
+            return {'error': str(e)}, 400
+

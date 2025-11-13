@@ -1,11 +1,13 @@
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import create_access_token
-from app.services import facade
-import jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from app.services.facade import HBnBFacade
 
-api = Namespace('auth', description='Authentification operations')
+api = Namespace('auth', description='Authentication operations')
 
-#Model for input validation
+# Initialize facade
+facade = HBnBFacade()
+
+# Model for input validation
 login_model = api.model('Login', {
     'email': fields.String(required=True, description='User email'),
     'password': fields.String(required=True, description='User password')
@@ -15,7 +17,7 @@ login_model = api.model('Login', {
 class Login(Resource):
     @api.expect(login_model)
     def post(self):
-        """Authentification user and return JWT token"""
+        """Authenticate user and return JWT token"""
         credentials = api.payload
         user = facade.get_user_by_email(credentials['email'])
         if not user or not user.verify_password(credentials['password']):
@@ -32,8 +34,7 @@ class Login(Resource):
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
-         """A protected endpoint that requires a valid JWT token"""
-         print("jwt------")
-         print(get_jwt_identity())
-         current_user = get_jwt_identity()
+        """A protected endpoint that requires a valid JWT token"""
+        current_user = get_jwt_identity()
+        return {'message': f'Hello user {current_user}'}, 200
          
